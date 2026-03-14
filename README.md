@@ -4,167 +4,326 @@ A guide for building scalable Flutter applications using best practices.
 
 ---
 
-# 1. OOP Principles
+# 1. Architecture
 
-Object-Oriented Programming helps organize code into reusable structures.
+The project follows **Clean Architecture**.
 
-Main concepts:
+Layers:
 
-• Encapsulation  
-• Inheritance  
-• Polymorphism  
-• Abstraction  
+Presentation → Domain → Data
 
-Example:
+Responsibilities:
 
-class UserRepository {
-  Future<User> getUser(int id);
-}
+Presentation
 
----
+* UI
+* Widgets
+* Bloc / Cubit
 
-# 2. SOLID Principles
+Domain
 
-SOLID improves maintainability and scalability.
+* Entities
+* Use cases
+* Repository contracts
 
-S — Single Responsibility  
-A class should have only one responsibility.
+Data
 
-O — Open/Closed  
-Open for extension, closed for modification.
+* API calls
+* Models
+* Repository implementations
+* Local storage
 
-L — Liskov Substitution  
-Subclasses should replace parent classes safely.
-
-I — Interface Segregation  
-Prefer multiple small interfaces.
-
-D — Dependency Inversion  
-Depend on abstractions not implementations.
+Never allow dependencies from Domain → Presentation.
 
 ---
 
-# 3. Clean Architecture
-
-Clean architecture separates the app into layers.
-
-Presentation Layer
-UI components, pages, and state management.
-
-Domain Layer
-Business logic and use cases.
-
-Data Layer
-Repositories, APIs, and local data sources.
-
-Example structure:
+# 2. Folder Structure
 
 lib/
 
 core/
 features/
 
+Example:
+
+lib/
+core/
+constants/
+errors/
+network/
+utils/
+
 features/
-  auth/
-  products/
+auth/
+data/
+domain/
+presentation/
 
 ---
 
-# 4. Bloc / Cubit Rules
+# 3. OOP Principles
 
-Best practices when using Bloc.
+Follow Object-Oriented Programming principles:
 
-• One Cubit per feature  
-• Avoid business logic in UI  
-• UI reacts to state only  
+Encapsulation
+Abstraction
+Inheritance
+Polymorphism
 
-Example states:
-
-Initial  
-Loading  
-Success  
-Error
+Classes should hide implementation details and expose only necessary interfaces.
 
 ---
 
-# 5. Pagination Pattern
+# 4. SOLID Principles
 
-Pagination loads data in chunks.
+S — Single Responsibility
+Each class should have one responsibility.
+
+O — Open / Closed
+Classes should be open for extension but closed for modification.
+
+L — Liskov Substitution
+Child classes must be usable instead of parent classes.
+
+I — Interface Segregation
+Prefer multiple small interfaces.
+
+D — Dependency Inversion
+Depend on abstractions not implementations.
 
 Example:
 
-page=1  
-limit=20
-
-Steps:
-
-1. Load first page
-2. Detect scroll
-3. Load next page
-4. Append data
-
----
-
-# 6. API Best Practices
-
-Use repository pattern.
-
-UI → Cubit → UseCase → Repository → API
-
-Example:
-
-abstract class ProductRepository {
-  Future<List<Product>> getProducts();
+abstract class UserRepository {
+Future<User> getUser();
 }
 
 ---
 
-# 7. Error Handling
+# 5. State Management
 
-Create unified error handling.
+Use **Bloc / Cubit**.
 
-Example errors:
+Rules:
 
-ServerError  
-NetworkError  
-CacheError
+• No business logic inside widgets
+• UI must remain passive
+• State changes handled by Cubit/Bloc
 
-Use Result or Either pattern.
+Flow:
+
+UI → Cubit → UseCase → Repository → DataSource → API
 
 ---
 
-# 8. Performance Optimization
+# 6. Dependency Injection
+
+Use dependency injection.
+
+Recommended tools:
+
+get_it
+injectable
+
+Rules:
+
+• No manual dependency creation inside UI
+• Register all services in DI container
+
+---
+
+# 7. Networking
+
+All API calls must be handled in the **data layer**.
+
+Recommended library:
+
+Dio
+
+Rules:
+
+• Use interceptors
+• Handle HTTP errors properly
+• Convert responses to models
+
+---
+
+# 8. Error Handling
+
+Use custom exceptions.
+
+Examples:
+
+ServerException
+NetworkException
+UnauthorizedException
+NotFoundException
+
+Convert exceptions to Failures in repository layer.
+
+---
+
+# 9. Pagination Pattern
+
+Use pagination for large datasets.
+
+Rules:
+
+• Avoid loading large lists at once
+• Use page-based API requests
+• Append data instead of replacing it
+
+---
+
+# 10. Repository Caching
+
+Implement caching where possible.
+
+Examples:
+
+Local database
+Memory cache
+
+Benefits:
+
+• Faster UI
+• Reduced API calls
+
+---
+
+# 11. API Versioning
+
+Support versioning for APIs.
+
+Example:
+
+/api/v1/users
+/api/v2/users
+
+Never break older versions without migration strategy.
+
+---
+
+# 12. Performance Optimization
 
 Best practices:
 
-• Use const widgets  
-• Avoid heavy work in build()  
-• Use ListView.builder  
-• Cache API responses  
-• Reduce widget rebuilds
+• Use const widgets
+• Avoid unnecessary rebuilds
+• Use ListView.builder
+• Use pagination for large lists
+
+Avoid heavy logic inside build().
 
 ---
 
-# 9. Folder Structure Example
+# 13. Testing
 
-lib/
+Testing types:
 
-core/
-  errors/
-  network/
+Unit tests
+Bloc tests
+Widget tests
 
-features/
-  auth/
-  products/
+Rules:
 
----
-
-# Conclusion
-
-Well-structured projects are easier to maintain, test, and scale.
+• Mock repositories
+• Avoid real API calls in tests
 
 ---
 
-# Contributions
+# 14. Git Workflow
 
-Suggestions and improvements are welcome.
+Branch naming:
+
+feature/login
+feature/profile
+bugfix/payment
+refactor/home
+
+Commit style:
+
+feat: add login feature
+fix: resolve crash in profile
+refactor: improve cubit logic
+
+---
+
+# 15. Security
+
+Never store sensitive information in source code.
+
+Use:
+
+.env files
+Secure storage
+
+Sensitive data includes:
+
+API keys
+tokens
+credentials
+
+---
+
+# 16. Code Quality
+
+Before merging:
+
+• Code compiles successfully
+• No unused imports
+• No debug prints
+• Follow architecture rules
+
+---
+
+# 17. Documentation
+
+All complex logic must include documentation comments.
+
+Example:
+
+/// Handles user authentication
+/// Returns User entity if login succeeds
+
+---
+
+# 18. Reusable Components
+
+Reusable UI must be placed inside:
+
+core/widgets/
+
+Examples:
+
+Custom buttons
+Text fields
+Dialogs
+
+---
+
+# 19. Logging
+
+Use structured logging.
+
+Recommended:
+
+logger package
+
+Avoid logging sensitive data.
+
+---
+
+# 20. General Rules
+
+Do not:
+
+• Mix architecture layers
+• Duplicate code
+• Hardcode strings
+• Hardcode colors
+
+Always:
+
+• Follow architecture
+• Keep code readable
+• Write maintainable code
